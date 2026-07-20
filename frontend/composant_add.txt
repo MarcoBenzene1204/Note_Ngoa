@@ -1,0 +1,35 @@
+##=== Alert ===##
+npx shadcn@latest add Alert
+
+##=== login ===##
+npx shadcn@latest add login-01
+
+##=== sign_up ===##
+npx shadcn@latest add signup-03
+
+##=== avatar ===##
+npx shadcn@latest add avatar
+
+##=== calendrier ===###
+npx shadcn@latest add calendar
+
+##=== combobox(liste deroulante) ===##
+npx shadcn@latest add combobox
+
+##=== Boite de dialogue ===##
+npx shadcn@latest add dialog
+
+##=== Switch ===##
+npx shadcn@latest add switch
+
+##=== Field(relatif au paiement) ===##
+npx shadcn@latest add field
+
+##=== input-group(relative àla barre de recherche) ===##
+npx shadcn@latest add input-group
+
+##=== message-scroller(relative au chatbot) ===##
+npx shadcn@latest add message-scroller
+
+##=== resizable(relative aux espaces redimentionnable) ===##
+npx shadcn@latest add resizable

@@ -15,12 +15,20 @@ import {
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 
+//Ici nous definissons le type de prop qu'accepte LoginForm
+interface LoginFormProps extends React.ComponentProps<"div"> {
+  onSwitchToSignup?: () => void
+}
+
 export function LoginForm({
   className,
+  onSwitchToSignup,
   ...props
-}: React.ComponentProps<"div">) {
+}: LoginFormProps) {
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
+
+      <Field className="text-center">Le Soko</Field>
       <Card>
         <CardHeader>
           <CardTitle>Login to your account</CardTitle>
@@ -36,7 +44,7 @@ export function LoginForm({
                 <Input
                   id="email"
                   type="email"
-                  placeholder="m@example.com"
+                  placeholder="e-mail@example.com"
                   required
                 />
               </Field>
@@ -58,7 +66,12 @@ export function LoginForm({
                   Login with Google
                 </Button>
                 <FieldDescription className="text-center">
-                  Don&apos;t have an account? <a href="#">Sign up</a>
+                  Don&apos;t have an account?{""}
+                  <button type="button" onClick={onSwitchToSignup}
+                    className="underline underline-offset-4 hover:text-primary cursor-pointer"
+                  >
+                    SignUp
+                  </button>
                 </FieldDescription>
               </Field>
             </FieldGroup>

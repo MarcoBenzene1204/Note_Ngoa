@@ -15,12 +15,19 @@ import {
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 
+//Ici nous definissons le type de prop qu'acceptera SignupForm
+interface SignupFormProps extends React.ComponentProps<"div">{
+  onSwitchToSignIn?: () => void
+}
+
 export function SignupForm({
   className,
+  onSwitchToSignIn,
   ...props
-}: React.ComponentProps<"div">) {
+}: SignupFormProps) {
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
+      <Field className="text-center">Le Soko</Field>
       <Card>
         <CardHeader className="text-center">
           <CardTitle className="text-xl">Create your account</CardTitle>
@@ -40,7 +47,7 @@ export function SignupForm({
                 <Input
                   id="email"
                   type="email"
-                  placeholder="m@example.com"
+                  placeholder="e-mail@example.com"
                   required
                 />
               </Field>
@@ -64,7 +71,13 @@ export function SignupForm({
               <Field>
                 <Button type="submit">Create Account</Button>
                 <FieldDescription className="text-center">
-                  Already have an account? <a href="#">Sign in</a>
+                  Already have an account? {""}
+                  <button type="button"
+                    onClick={onSwitchToSignIn}
+                    className="underline underline-offset-4 hover:text-primary cursor-pointer"
+                  >
+                    SignIn
+                  </button>
                 </FieldDescription>
               </Field>
             </FieldGroup>
@@ -72,7 +85,7 @@ export function SignupForm({
         </CardContent>
       </Card>
       <FieldDescription className="px-6 text-center">
-        By clicking continue, you agree to our <a href="#">Terms of Service</a>{" "}
+        By clicking Create Account, you agree to our <a href="#">Terms of Service</a>{" "}
         and <a href="#">Privacy Policy</a>.
       </FieldDescription>
     </div>

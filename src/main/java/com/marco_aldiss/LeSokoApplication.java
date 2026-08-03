@@ -1,4 +1,4 @@
-package com.marco_aldiss.Le_Soko;
+package com.marco_aldiss;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -6,8 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class LeSokoApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(LeSokoApplication.class, args);
-	}
-
+    public static void main(String[] args) {
+        SpringApplication.run(LeSokoApplication.class, args);
+    }
 }

@@ -1,0 +1,165 @@
+services:
+
+  #=== Container de base de donnees de l'application ===#
+  postgres:
+    image: postgres:16-alpine
+    container_name: LeSoko_postgres
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    ports:
+     - 5433:5432
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-leSokoDB}
+      POSTGRES_USER: ${POSTGRES_USER:-LeSoko_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-LeS@k@_P@ssw@rd}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d
+    networks:
+      - backend-network
+
+  #=== Container pour effectuer les migrations et versionner la base de donnees
+  flyway:
+    image: flyway/flyway:latest
+    container_name: LeSoko_flyway
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: -url=jdbc:postgresql://postgres:5432/leSokoDB -user=LeSoko_user -password=LeS@k@_P@ssw@rd migrate
+    restart: unless-stopped
+    volumes:
+      - ./src/main/resources/db/migration:/flyway/sql
+    networks:
+      - backend-network
+
+  #=== Container pour gerer le cache de l'application ===#
+  redis:
+    image: redis:7-alpine
+    container_name: LeSoko_redis
+    restart: unless-stopped
+    ports:
+      - 6380:6379
+    command: redis-server --requirepass admin123
+    volumes:
+      - redis_data:/data
+    networks:
+      - backend-network
+
+  #
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: LeSoko_rabbitmq
+    restart: unless-stopped
+    ports:
+      - 5672:5672
+      - 15672:15672
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-admin}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-@dmin_p@ssw@rd}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - backend-network
+
+  #=== Container pour le stockage des fichiers ===#
+  minio:
+    image: minio/minio:latest
+    container_name: LeSoko_minio
+    restart: unless-stopped
+    ports:
+      - 9000:9000
+      - 9001:9001
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minio_admin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-mini@_p@ssw@rd}
+    volumes:
+      - minio_data:/data
+    networks:
+      - backend-network
+
+  #=== Container serveur d'identité ===#
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.6.4
+    container_name: LeSoko_keycloak
+    ports:
+      - 8083:8080
+    restart: unless-stopped
+    command: start-dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      KC_DB: ${KC_DB:-postgres}
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+      KC_DB_USERNAME: ${POSTGRES_USER:-LeSoko_user}
+      KC_DB_PASSWORD: ${POSTGRES_PASSWORD:-LeS@k@_P@ssw@rd}
+      KC_DB_URL: ${KC_DB_URL:-jdbc:postgresql://postgres:5432/leSokoDB}
+    networks:
+      - keycloak-network
+      - backend-network
+
+  #=== Container pour stocker, indexer et rechercher de gros volumes de texte ===#
+  opensearch:
+    image: opensearchproject/opensearch:2.12.0
+    container_name: LeSoko_opensearch
+    restart: unless-stopped
+    ports:
+      - 9200:9200
+      - 9600:9600
+    environment:
+      cluster.name: ${cluster_name:-leSoko_cluster}
+      discovery.type: ${discovery_type:-single-node}
+      DISABLE_SECURITY_PLUGIN: ${DISABLE_SECURITY_PLUGIN:-"true"}
+      DISABLE_INSTALL_DEMO_CONFIG: ${DISABLE_INSTALL_DEMO_CONFIG:-"true"}
+      OPENSEARCH_INITIAL_ADMIN_PASSWORD: ${OPENSEARCH_INITIAL_ADMIN_PASSWORD:-~MarcoBenzene1204_52!~}
+    volumes:
+      - opensearch_data:/usr/share/opensearch/data
+    networks:
+      - backend-network
+
+  #=== Container pour la gestion des mails ===#
+  mailpit:
+    image: axllent/mailpit:v1.30.5
+    container_name: LeSoko_mailpit
+    restart: unless-stopped
+    ports:
+      - 8025:8025
+      - 1025:1025
+    networks:
+      - backend-network
+      - keycloak-network
+
+  #=== Container pour orchestrer les workflows complexes et durable ===#
+  zeebe:
+    image: camunda/zeebe:8.4.0
+    container_name: LeSoko_zeebe
+    restart: unless-stopped
+    ports:
+      - 26500:26500
+      - 9601:9600
+    environment:
+      ZEEBE_BROKER_GATEWAY_SECURITY_ENABLED: ${ZEEBE_BROKER_GATEWAY_SECURITY_ENABLED:-"false"}
+    volumes:
+      - zeebe_data:/usr/local/zeebe/data
+    networks:
+      - backend-network
+
+networks:
+  backend-network:
+  keycloak-network:
+
+volumes:
+  postgres_data:
+  redis_data:
+  minio_data:
+  zeebe_data:
+  rabbitmq_data:
+  opensearch_data:
+
+
